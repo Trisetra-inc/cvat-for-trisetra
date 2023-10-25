@@ -13,6 +13,7 @@ import { MenuInfo } from 'rc-menu/lib/interface';
 import { DimensionType } from 'cvat-core-wrapper';
 import { usePlugins } from 'utils/hooks';
 import { CombinedState } from 'reducers';
+import { sendRequest, TRISETRA_API_ENDPOINT, TRISETRA_API_TOKEN } from 'trisetra-api-wrapper';
 
 interface Props {
     taskID: number;
@@ -30,6 +31,9 @@ interface Props {
 export enum Actions {
     LOAD_TASK_ANNO = 'load_task_anno',
     EXPORT_TASK_DATASET = 'export_task_dataset',
+    EXPORT_TASK_ANNOTATIONS = 'export_task_annotations',
+    GENERATE_BLEND_AND_PREVIEW = 'generate_blend_and_preview',
+    GENERATE_GLB_AND_HDRS = 'generate_glb_and_hdrs',
     DELETE_TASK = 'delete_task',
     RUN_AUTO_ANNOTATION = 'run_auto_annotation',
     MOVE_TASK_TO_PROJECT = 'move_task_to_project',
@@ -70,6 +74,36 @@ function ActionsMenuComponent(props: Props): JSX.Element {
                     },
                     okText: 'Delete',
                 });
+            } else if (params.key === Actions.EXPORT_TASK_ANNOTATIONS) {
+                const frameRotationInfo: string[] = [];
+                Object.keys(localStorage)
+                    .filter((key: string) => key.startsWith(`Task_${taskID}_Job_`) && key.endsWith('_rotation'))
+                    .forEach((key: string) => {
+                        const rotationValue = Number(localStorage.getItem(key));
+                        const anticlockWiseRotation =
+                            rotationValue > 0 ? (4 - rotationValue) * 90 : rotationValue * -90;
+                        frameRotationInfo.push(`${key.split('_').at(-2)}=${anticlockWiseRotation}`);
+                    });
+                const exportUrl = `${TRISETRA_API_ENDPOINT}/annotations/${taskID}/export?token=${TRISETRA_API_TOKEN}&${frameRotationInfo.join('&')}`;
+                const exportTab = window.open(exportUrl, '_blank', 'noopener noreferrer');
+                exportTab?.focus();
+            } else if ([Actions.GENERATE_BLEND_AND_PREVIEW, Actions.GENERATE_GLB_AND_HDRS].includes(params.key)) {
+                const path = `tasks/${taskID}/${params.key === Actions.GENERATE_BLEND_AND_PREVIEW ? 'generate-blend' : 'generate-glb'}`;
+                sendRequest(path).then((data) => {
+                    Modal.success({
+                        title: 'Request sent',
+                        content: data.message,
+                    });
+                    if (data.redirect_url) {
+                        const redirectedTab = window.open(data.redirect_url, '_blank', 'noopener noreferrer');
+                        redirectedTab?.focus();
+                    }
+                }).catch((err) => {
+                    Modal.error({
+                        title: 'Error',
+                        content: err.message,
+                    });
+                });
             } else {
                 onClickMenu(params);
             }
@@ -85,6 +119,18 @@ function ActionsMenuComponent(props: Props): JSX.Element {
     menuItems.push([(
         <Menu.Item key={Actions.EXPORT_TASK_DATASET}>Export task dataset</Menu.Item>
     ), 10]);
+
+    menuItems.push([(
+        <Menu.Item key={Actions.EXPORT_TASK_ANNOTATIONS}>Export Annotations & Reconstruct</Menu.Item>
+    ), 11]);
+
+    menuItems.push([(
+        <Menu.Item key={Actions.GENERATE_BLEND_AND_PREVIEW}>Generate Preview & Blend File</Menu.Item>
+    ), 12]);
+
+    menuItems.push([(
+        <Menu.Item key={Actions.GENERATE_GLB_AND_HDRS}>Generate & Upload GLB + HDRs</Menu.Item>
+    ), 13]);
 
     if (bugTracker) {
         menuItems.push([(

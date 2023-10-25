@@ -207,7 +207,14 @@ services:
 
   cvat_ui:
     container_name: cvat_ui
-    image: cvat/ui:${CVAT_VERSION:-v2.9.2}
+    build:
+      context: .
+      args:
+        http_proxy:
+        https_proxy:
+        no_proxy:
+        socks_proxy:
+      dockerfile: Dockerfile.ui
     restart: always
     depends_on:
       - cvat_server
@@ -218,6 +225,27 @@ services:
       - traefik.http.routers.cvat-ui.entrypoints=web
     networks:
       - cvat
+
+  log-watcher:
+    image: tbrock/saw
+    container_name: log-watcher
+    restart: always
+    volumes:
+      - ~/.aws:$HOME/.aws
+      - ./logs:$HOME/logs
+    command: watch /aws/lambda/reconstruction-pipeline-prod-reconstruct --expand --region us-east-1 >> $HOME/logs/cv_reconstruction.log
+
+  log-streamer:
+    image: mthenw/frontail
+    container_name: log-streamer
+    restart: always
+    ports:
+      - "9001:9001"
+    command: -p 9001 -U trisetra -P kudos_hckuna_matata_2020 -n 1000 -l 5000 /var/log/cv_reconstruction.log
+    volumes:
+      - ./logs:/var/log
+    depends_on:
+      - log-watcher
 
   traefik:
     image: traefik:v2.10

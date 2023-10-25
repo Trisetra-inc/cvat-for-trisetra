@@ -12,12 +12,14 @@ import Dropdown from 'antd/lib/dropdown';
 import { PlusOutlined, UploadOutlined, LoadingOutlined } from '@ant-design/icons';
 import Button from 'antd/lib/button';
 import Input from 'antd/lib/input';
+import { Modal } from 'antd';
 import { importActions } from 'actions/import-actions';
 import { SortingComponent, ResourceFilterHOC, defaultVisibility } from 'components/resource-sorting-filtering';
 import { TasksQuery } from 'reducers';
 import { usePrevious } from 'utils/hooks';
 import { MultiPlusIcon } from 'icons';
 import CvatDropdownMenuPaper from 'components/common/cvat-dropdown-menu-paper';
+import { sendRequest } from 'trisetra-api-wrapper';
 import {
     localStorageRecentKeyword, localStorageRecentCapacity, predefinedFilterValues, config,
 } from './tasks-filter-configuration';
@@ -45,6 +47,48 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
     const history = useHistory();
     const prevImporting = usePrevious(importing);
 
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const updatePrebuilts = async (ev: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        ev.preventDefault();
+        sendRequest('tasks/update-prebuilts').then((data) => {
+            Modal.success({
+                title: 'Updating Prebuilts ...',
+                content: data.message,
+            });
+            if (data.redirect_url) {
+                const redirectedTab = window.open(data.redirect_url, '_blank', 'noopener noreferrer');
+                redirectedTab?.focus();
+            }
+        })
+            .catch((error) => {
+                Modal.error({
+                    title: 'Error',
+                    content: error.message,
+                });
+            });
+    };
+
+    // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+    const updateFloorMaterials = async (ev: React.MouseEvent<HTMLElement, MouseEvent>) => {
+        ev.preventDefault();
+        sendRequest('tasks/update-floor-materials').then((data) => {
+            Modal.success({
+                title: 'Updating Floor Materials ...',
+                content: data.message,
+            });
+            if (data.redirect_url) {
+                const redirectedTab = window.open(data.redirect_url, '_blank', 'noopener noreferrer');
+                redirectedTab?.focus();
+            }
+        })
+            .catch((error) => {
+                Modal.error({
+                    title: 'Error',
+                    content: error.message,
+                });
+            });
+    };
+
     useEffect(() => {
         if (prevImporting && !importing) {
             onApplyFilter(query.filter);
@@ -65,6 +109,12 @@ export default function TopBarComponent(props: VisibleTopBarProps): JSX.Element 
                         placeholder='Search ...'
                     />
                     <div>
+                        <Button type='default' onClick={updatePrebuilts}>
+                            Update Prebuilts
+                        </Button>
+                        <Button type='default' onClick={updateFloorMaterials}>
+                            Update Floor Materials
+                        </Button>
                         <SortingComponent
                             visible={visibility.sorting}
                             onVisibleChange={(visible: boolean) => (

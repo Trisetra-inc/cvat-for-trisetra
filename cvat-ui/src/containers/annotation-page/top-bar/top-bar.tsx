@@ -41,6 +41,7 @@ import {
 import isAbleToChangeFrame from 'utils/is-able-to-change-frame';
 import GlobalHotKeys, { KeyMap } from 'utils/mousetrap-react';
 import { switchToolsBlockerState } from 'actions/settings-actions';
+import { sendRequest } from 'trisetra-api-wrapper';
 
 interface StateToProps {
     jobInstance: any;
@@ -551,6 +552,78 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
         return undefined;
     };
 
+    private validateAnnotations = (): Promise<any> => {
+        const { jobInstance } = this.props;
+        const frameRotationInfo: { [frame_id: string]: number } = {};
+        Object.keys(localStorage)
+            .filter((key: string) => key.includes(`_Job_${jobInstance.id}`) && key.endsWith('_rotation'))
+            .forEach(
+                (key: string) => {
+                    const rotationValue = Number(localStorage.getItem(key));
+                    const anticlockWiseRotation = rotationValue > 0 ?
+                        (4 - rotationValue) * 90 :
+                        rotationValue * -90;
+                    frameRotationInfo[`${key.split('_').at(-2)}`] = anticlockWiseRotation;
+                },
+            );
+        return sendRequest(`annotations/${jobInstance.id}/validate`, {
+            body: JSON.stringify({ frame_rotation_info: frameRotationInfo }),
+        });
+    }
+
+    private range = (size: number): number[] => [...Array(size).keys()];
+
+    private mapFrameNumberToOrderingTag = async (): Promise<number[]> => {
+        const { jobInstance } = this.props;
+        const { stopFrame, annotations } = jobInstance;
+        const allFrames = this.range(stopFrame + 1);
+        const frameNumberToOrderingTagMap = await Promise.all(
+            allFrames.map(async (frame) => {
+                const annotationJson = await annotations.get(frame, false, []);
+                const orderingTag = Number(Object.values(annotationJson.find((annotation: { label: { name: string; }; }) => annotation.label.name === 'ordering')?.attributes ?? {})?.[0] ?? -1);
+                return orderingTag;
+            }),
+        );
+        return frameNumberToOrderingTagMap;
+    }
+
+    private onPrevFrameByOrderingTag = async (): Promise<void> => {
+        const { frameNumber } = this.props;
+
+        const map = await this.mapFrameNumberToOrderingTag();
+        const currentOrderingTag = map[frameNumber];
+        if (currentOrderingTag === -1) {
+            this.changeFrame(map.indexOf(Math.max(...map)));
+            return;
+        }
+        const sortedMap = [...map].sort();
+        this.changeFrame(
+            map.indexOf(sortedMap[(sortedMap.indexOf(currentOrderingTag) + sortedMap.length - 1) % sortedMap.length]),
+        );
+    };
+
+    private onNextFrameByOrderingTag = async (): Promise<void> => {
+        const { frameNumber } = this.props;
+
+        const map = await this.mapFrameNumberToOrderingTag();
+        const currentOrderingTag = map[frameNumber];
+        if (currentOrderingTag === -1) {
+            this.changeFrame(map.indexOf(Math.min(...(map).filter((tag) => tag !== -1))));
+            return;
+        }
+        const sortedMap = [...map].sort();
+        this.changeFrame(map.indexOf(sortedMap[(sortedMap.indexOf(currentOrderingTag) + 1) % sortedMap.length]));
+    };
+
+    private onSwitchFrame = async (event: KeyboardEvent | undefined, shortcut: string): Promise<void> => {
+        let orderingTag = Number(shortcut.trim());
+        if (orderingTag === 0) orderingTag = 10;
+        const map = await this.mapFrameNumberToOrderingTag();
+        if (map.includes(orderingTag - 1) && orderingTag - 1 !== -1) {
+            this.changeFrame(map.indexOf(orderingTag - 1));
+        }
+    };
+
     private play(): void {
         const {
             jobInstance,
@@ -675,9 +748,30 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             SEARCH_BACKWARD: keyMap.SEARCH_BACKWARD,
             PLAY_PAUSE: keyMap.PLAY_PAUSE,
             FOCUS_INPUT_FRAME: keyMap.FOCUS_INPUT_FRAME,
+            NEXT_FRAME_BY_ORDERING_TAG: keyMap.NEXT_FRAME_BY_ORDERING_TAG,
+            PREV_FRAME_BY_ORDERING_TAG: keyMap.PREV_FRAME_BY_ORDERING_TAG,
+            SWITCH_FRAME: keyMap.SWITCH_FRAME,
         };
 
         const handlers = {
+            NEXT_FRAME_BY_ORDERING_TAG: (event: KeyboardEvent | undefined) => {
+                preventDefault(event);
+                if (canvasIsReady) {
+                    this.onNextFrameByOrderingTag();
+                }
+            },
+            PREV_FRAME_BY_ORDERING_TAG: (event: KeyboardEvent | undefined) => {
+                preventDefault(event);
+                if (canvasIsReady) {
+                    this.onPrevFrameByOrderingTag();
+                }
+            },
+            SWITCH_FRAME: (event: KeyboardEvent | undefined, shortcut: string) => {
+                preventDefault(event);
+                if (canvasIsReady) {
+                    this.onSwitchFrame(event, shortcut);
+                }
+            },
             UNDO: (event: KeyboardEvent | undefined) => {
                 preventDefault(event);
                 if (undoAction) {
@@ -800,6 +894,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
                     toolsBlockerState={toolsBlockerState}
                     jobInstance={jobInstance}
                     activeControl={activeControl}
+                    validateAnnotations={this.validateAnnotations}
                     deleteFrameAvailable={jobInstance.type !== JobType.GROUND_TRUTH}
                 />
             </>

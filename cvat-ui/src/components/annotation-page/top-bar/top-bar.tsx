@@ -67,6 +67,7 @@ interface Props {
     onDeleteFrame(): void;
     onRestoreFrame(): void;
     switchNavigationBlocked(blocked: boolean): void;
+    validateAnnotations(): Promise<any>;
     jobInstance: any;
     ranges: string;
 }
@@ -125,6 +126,7 @@ export default function AnnotationTopBarComponent(props: Props): JSX.Element {
         onRestoreFrame,
         switchNavigationBlocked,
         jobInstance,
+        validateAnnotations,
     } = props;
 
     const playerPlugins = usePlugins(
@@ -202,6 +204,7 @@ export default function AnnotationTopBarComponent(props: Props): JSX.Element {
                 onRedoClick={onRedoClick}
                 onFinishDraw={onFinishDraw}
                 onSwitchToolsBlockerState={onSwitchToolsBlockerState}
+                validateAnnotations={validateAnnotations}
             />
             <Col className='cvat-annotation-header-player-group'>
                 <Row align='middle'>

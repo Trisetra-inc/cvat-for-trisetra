@@ -824,7 +824,7 @@ export function redoActionAsync(sessionInstance: NonNullable<CombinedState['anno
     };
 }
 
-export function rotateCurrentFrame(rotation: Rotation): AnyAction {
+export function rotateCurrentFrame(rotation: Rotation, updateDb = true): AnyAction {
     const state: CombinedState = getStore().getState();
     const {
         annotation: {
@@ -841,6 +841,22 @@ export function rotateCurrentFrame(rotation: Rotation): AnyAction {
             player: { rotateAll },
         },
     } = state;
+
+    if (updateDb) {
+        const rotationValue = rotation === 0 ? -1 : rotation;
+        const key = `Task_${job.taskId}_Job_${job.id}_frame_${frameNumber}_rotation`;
+
+        if (localStorage.getItem(key)) {
+            let newRotationValue =
+                Number(localStorage.getItem(key)) + rotationValue;
+            if (Math.abs(newRotationValue) > 3) {
+                newRotationValue = 0;
+            }
+            localStorage.setItem(key, `${newRotationValue}`);
+        } else {
+            localStorage.setItem(key, `${rotationValue}`);
+        }
+    }
 
     const frameAngle = (frameAngles[frameNumber - startFrame] + (rotation === Rotation.CLOCKWISE90 ? 90 : 270)) % 360;
 

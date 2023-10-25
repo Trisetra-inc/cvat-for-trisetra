@@ -5,8 +5,9 @@
 import React, { useEffect } from 'react';
 
 import { useDispatch, useSelector } from 'react-redux';
-import { PictureOutlined } from '@ant-design/icons';
+import { LinkOutlined, PictureOutlined } from '@ant-design/icons';
 import Spin from 'antd/lib/spin';
+import Text from 'antd/lib/typography/Text';
 import { getJobPreviewAsync } from 'actions/jobs-actions';
 import { getTaskPreviewAsync } from 'actions/tasks-actions';
 import { getProjectsPreviewAsync } from 'actions/projects-actions';
@@ -28,6 +29,7 @@ interface Props {
     emptyPreviewClassName?: string;
     previewWrapperClassName?: string;
     previewClassName?: string;
+    showQAIcon?: boolean;
 }
 
 export default function Preview(props: Props): JSX.Element {
@@ -44,6 +46,7 @@ export default function Preview(props: Props): JSX.Element {
         emptyPreviewClassName,
         previewWrapperClassName,
         previewClassName,
+        showQAIcon,
     } = props;
 
     const preview = useSelector((state: CombinedState) => {
@@ -94,14 +97,33 @@ export default function Preview(props: Props): JSX.Element {
     }
 
     return (
-        <div className={previewWrapperClassName || ''} aria-hidden>
-            <img
-                className={previewClassName || ''}
-                src={preview.preview}
-                onClick={onClick}
-                alt='Preview image'
-                aria-hidden
-            />
-        </div>
+        <>
+            <div className={previewWrapperClassName || ''} aria-hidden>
+                <img
+                    className={previewClassName || ''}
+                    src={preview.preview}
+                    onClick={onClick}
+                    alt='Preview image'
+                    aria-hidden
+                />
+            </div>
+            {showQAIcon ? (
+                <div style={{ alignItems: 'center', textAlign: 'center' }}>
+                    <a
+                        href={`https://decor.trisetra.com/#/interaction/${task.name
+                            .split('_')
+                            .at(0)}?testing=true&type=work_order`}
+                        target='_blank'
+                        rel='noopener noreferrer'
+                    >
+                        <span>
+                            <Text>QA</Text>
+                            {' '}
+                            <LinkOutlined />
+                        </span>
+                    </a>
+                </div>
+            ) : null}
+        </>
     );
 }

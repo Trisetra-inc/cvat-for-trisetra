@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { useHistory } from 'react-router';
 import Layout from 'antd/lib/layout';
 import Result from 'antd/lib/result';
@@ -18,7 +18,7 @@ import TagAnnotationWorkspace from 'components/annotation-page/tag-annotation-wo
 import FiltersModalComponent from 'components/annotation-page/top-bar/filters-modal';
 import StatisticsModalComponent from 'components/annotation-page/top-bar/statistics-modal';
 import AnnotationTopBarContainer from 'containers/annotation-page/top-bar/top-bar';
-import { Workspace } from 'reducers';
+import { Rotation, Workspace } from 'reducers';
 import { usePrevious } from 'utils/hooks';
 import './styles.scss';
 import Button from 'antd/lib/button';
@@ -32,14 +32,18 @@ interface Props {
     saveLogs(): void;
     closeJob(): void;
     changeFrame(frame: number): void;
+    rotateFrame(angle: Rotation, updateDb: boolean): void;
 }
 
 export default function AnnotationPageComponent(props: Props): JSX.Element {
     const {
-        job, fetching, workspace, frameNumber, getJob, closeJob, saveLogs, changeFrame,
+        job, fetching, workspace, frameNumber, getJob, closeJob, saveLogs, changeFrame, rotateFrame,
     } = props;
     const prevJob = usePrevious(job);
     const prevFetching = usePrevious(fetching);
+    const frameRotationUpdateInfo = useRef<{
+        [key: string]: boolean;
+    }>({});
 
     const history = useHistory();
     useEffect(() => {
@@ -66,6 +70,24 @@ export default function AnnotationPageComponent(props: Props): JSX.Element {
             getJob();
         }
     }, [job, fetching]);
+
+    useEffect(() => {
+        if (job) {
+            setTimeout(() => {
+                const key = `Task_${job.taskId}_Job_${job.id}_frame_${frameNumber}_rotation`;
+                const rotationValue = localStorage.getItem(key);
+                if (rotationValue && !frameRotationUpdateInfo.current[key]) {
+                    const sign = rotationValue.startsWith('-') ? -1 : 1;
+                    let angle = Math.abs(Number(rotationValue));
+                    while (angle > 0) {
+                        rotateFrame(sign < 0 ? Rotation.ANTICLOCKWISE90 : Rotation.CLOCKWISE90, false);
+                        angle--;
+                    }
+                    frameRotationUpdateInfo.current[key] = true;
+                }
+            }, 500);
+        }
+    }, [job, frameNumber]);
 
     useEffect(() => {
         if (prevFetching && !fetching && !prevJob && job) {

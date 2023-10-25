@@ -9,10 +9,10 @@ import { RouteComponentProps } from 'react-router';
 import AnnotationPageComponent from 'components/annotation-page/annotation-page';
 import {
     getJobAsync, saveLogsAsync, changeFrameAsync,
-    closeJob as closeJobAction,
+    closeJob as closeJobAction, rotateCurrentFrame,
 } from 'actions/annotation-actions';
 
-import { CombinedState, Workspace } from 'reducers';
+import { CombinedState, Rotation, Workspace } from 'reducers';
 
 type OwnProps = RouteComponentProps<{
     tid: string;
@@ -31,6 +31,7 @@ interface DispatchToProps {
     changeFrame(frame: number): void;
     saveLogs(): void;
     closeJob(): void;
+    rotateFrame(angle: Rotation, updateDb: boolean): void;
 }
 
 function mapStateToProps(state: CombinedState, own: OwnProps): StateToProps {
@@ -97,6 +98,9 @@ function mapDispatchToProps(dispatch: any, own: OwnProps): DispatchToProps {
         },
         changeFrame(frame: number): void {
             dispatch(changeFrameAsync(frame));
+        },
+        rotateFrame(angle: Rotation, updateDb: boolean): void {
+            dispatch(rotateCurrentFrame(angle, updateDb));
         },
     };
 }

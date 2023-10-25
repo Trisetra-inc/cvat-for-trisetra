@@ -10,9 +10,12 @@ import Modal from 'antd/lib/modal';
 import Button from 'antd/lib/button';
 import Text from 'antd/lib/typography/Text';
 import Dropdown from 'antd/lib/dropdown';
+import Timeline from 'antd/lib/timeline/Timeline';
 
 import AnnotationMenuContainer from 'containers/annotation-page/top-bar/annotation-menu';
-import { MainMenuIcon, UndoIcon, RedoIcon } from 'icons';
+import {
+    MainMenuIcon, UndoIcon, RedoIcon, ChecklistIcon,
+} from 'icons';
 import { ActiveControl, ToolsBlockerState } from 'reducers';
 import CVATTooltip from 'components/common/cvat-tooltip';
 import customizableComponents from 'components/customizable-components';
@@ -32,6 +35,7 @@ interface Props {
     onRedoClick(): void;
     onFinishDraw(): void;
     onSwitchToolsBlockerState(): void;
+    validateAnnotations(): Promise<any>;
 }
 
 function LeftGroup(props: Props): JSX.Element {
@@ -50,6 +54,7 @@ function LeftGroup(props: Props): JSX.Element {
         onRedoClick,
         onFinishDraw,
         onSwitchToolsBlockerState,
+        validateAnnotations,
     } = props;
 
     const includesDoneButton = [
@@ -66,11 +71,46 @@ function LeftGroup(props: Props): JSX.Element {
     const shouldEnableToolsBlockerOnClick = [ActiveControl.OPENCV_TOOLS].includes(activeControl);
     const SaveButtonComponent = customizableComponents.SAVE_ANNOTATION_BUTTON;
 
+    const [resultModalVisibility, setResultModalVisibility] = React.useState(false);
+    const [results, setResults] = React.useState(null);
+
+    const closeResultModal = (): void => {
+        setResultModalVisibility(false);
+    };
+
+    const baseProps = {
+        cancelButtonProps: { style: { display: 'none' } },
+        okButtonProps: { style: { width: 100 } },
+        onOk: closeResultModal,
+        width: 1280,
+        closable: false,
+    };
+
     return (
         <>
             <Modal className='cvat-saving-job-modal' title='Saving changes on the server' visible={saving} footer={[]} closable={false}>
                 <Text>CVAT is saving your annotations, please wait </Text>
                 <LoadingOutlined />
+            </Modal>
+            <Modal title='Checking annotations for the current job' visible={resultModalVisibility} {...baseProps}>
+                {resultModalVisibility && (
+                    <Timeline>
+                        {Object.keys(results as any).map((check_no) => (
+                            <>
+                                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                                <Timeline.Item key={check_no}>{(results as any)[check_no].passed ? '✅' : '❌' }&emsp;{(results as any)[check_no].name}</Timeline.Item>
+                                {!(results as any)[check_no].passed && (
+                                    (results as any)[check_no].images.map((image: any) => (
+                                        <Timeline.Item style={{ marginLeft: '4%' }}>
+                                            {image.passed ?
+                                                `✅  Frame ID: ${image.frame_id}` :
+                                                `❌  Frame ID: ${image.frame_id} Message: ${image.message}` }
+                                        </Timeline.Item>
+                                    )))}
+                            </>
+                        ))}
+                    </Timeline>
+                )}
             </Modal>
             <Col className='cvat-annotation-header-left-group'>
                 <Dropdown overlay={<AnnotationMenuContainer />}>
@@ -115,7 +155,23 @@ function LeftGroup(props: Props): JSX.Element {
                             Done
                         </Button>
                     </CVATTooltip>
-                ) : null}
+                ) : (
+                    <CVATTooltip overlay='Validate Annotations'>
+                        <Button
+                            type='link'
+                            className='cvat-annotation-header-button'
+                            onClick={() => {
+                                validateAnnotations().then((res) => {
+                                    setResults(res);
+                                    setResultModalVisibility(true);
+                                });
+                            }}
+                        >
+                            <Icon component={ChecklistIcon} />
+                            Check
+                        </Button>
+                    </CVATTooltip>
+                )}
                 {includesToolsBlockerButton ? (
                     <CVATTooltip overlay={`Press "${switchToolsBlockerShortcut}" to postpone running the algorithm `}>
                         <Button
