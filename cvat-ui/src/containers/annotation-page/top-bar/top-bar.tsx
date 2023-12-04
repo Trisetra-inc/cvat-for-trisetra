@@ -444,6 +444,10 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
     private onSaveAnnotation = (): void => {
         const { onSaveAnnotation, jobInstance } = this.props;
         onSaveAnnotation(jobInstance);
+        // TODO: Ideally this should be called when the taskName startsWith `material_`.
+        sendRequest(`annotations/${jobInstance.id}/update-material`).catch((err) => {
+            console.error('onSaveAnnotation', err.message);
+        });
     };
 
     private onChangePlayerSliderValue = async (value: number): Promise<void> => {
