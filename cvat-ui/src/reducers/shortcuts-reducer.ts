@@ -274,21 +274,18 @@ const defaultKeyMap = ({
         description: 'Go to the next frame by ordering tag',
         sequences: ['w'],
         action: 'keydown',
-        applicable: [DimensionType.DIMENSION_2D, DimensionType.DIMENSION_3D],
     },
     PREV_FRAME_BY_ORDERING_TAG: {
         name: 'Previous frame by ordering tag',
         description: 'Go to the previous frame by ordering tag',
         sequences: ['s'],
         action: 'keydown',
-        applicable: [DimensionType.DIMENSION_2D, DimensionType.DIMENSION_3D],
     },
     SWITCH_FRAME: {
         name: 'Switch frame',
         description: 'Changes the frame for a job according to the ordering tag',
         sequences: ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0'],
         action: 'keydown',
-        applicable: [DimensionType.DIMENSION_2D, DimensionType.DIMENSION_3D],
     },
     FORWARD_FRAME: {
         name: 'Forward frame',
