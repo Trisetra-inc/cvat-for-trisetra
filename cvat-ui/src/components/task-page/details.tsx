@@ -113,50 +113,50 @@ class DetailsComponent extends React.PureComponent<Props, State> {
             this.setState({
                 name: taskInstance.name,
             });
-        }
 
-        sendRequest(`tasks/${taskInstance.id}/reconstruction-previews`).then((res) => {
-            if (res.previews.length > 0) {
-                res.previews.forEach((preview: string) => {
-                    if (preview.includes('.ply')) {
-                        this.setState({ plyFile: preview, lastModified: res.last_modified });
-                    } else {
-                        const img = new Image();
-                        img.onload = () => {
-                            const { height, width } = img;
-                            if (width > height) {
-                                img.style.width = '100%';
-                            } else {
-                                img.style.height = '100%';
-                            }
-                        };
-                        const imgName = preview.substring(preview.lastIndexOf('/') + 1, preview.indexOf('?'));
-                        // eslint-disable-next-line security/detect-non-literal-fs-filename
-                        img.onclick = () => window.open(
-                            imgName === 'combined_room_camera_geometry_preview.png' ?
-                                `https://www.trisetra.com/panorama/?source=${window.location.href}&url=${preview}` :
-                                preview,
-                        );
-                        img.loading = 'lazy';
-                        img.src = preview;
-                        img.alt = `Could not load ${imgName}`;
-                        reconstructionWrapperRef.current?.appendChild(img);
-                    }
-                });
-            } else {
+            sendRequest(`tasks/${taskInstance.id}/reconstruction-previews`).then((res) => {
+                if (res.previews.length > 0) {
+                    res.previews.forEach((preview: string) => {
+                        if (preview.includes('.ply')) {
+                            this.setState({ plyFile: preview, lastModified: res.last_modified });
+                        } else {
+                            const img = new Image();
+                            img.onload = () => {
+                                const { height, width } = img;
+                                if (width > height) {
+                                    img.style.width = '100%';
+                                } else {
+                                    img.style.height = '100%';
+                                }
+                            };
+                            const imgName = preview.substring(preview.lastIndexOf('/') + 1, preview.indexOf('?'));
+                            // eslint-disable-next-line security/detect-non-literal-fs-filename
+                            img.onclick = () => window.open(
+                                imgName === 'combined_room_camera_geometry_preview.png' ?
+                                    `https://www.trisetra.com/panorama/?source=${window.location.href}&url=${preview}` :
+                                    preview,
+                            );
+                            img.loading = 'lazy';
+                            img.src = preview;
+                            img.alt = `Could not load ${imgName}`;
+                            reconstructionWrapperRef.current?.appendChild(img);
+                        }
+                    });
+                } else {
+                    const img = new Image();
+                    img.src = '';
+                    img.alt = res.message;
+                    reconstructionWrapperRef.current?.appendChild(img);
+                }
+            }).catch((err) => {
                 const img = new Image();
                 img.src = '';
-                img.alt = res.message;
+                img.alt = err.message;
                 reconstructionWrapperRef.current?.appendChild(img);
-            }
-        }).catch((err) => {
-            const img = new Image();
-            img.src = '';
-            img.alt = err.message;
-            reconstructionWrapperRef.current?.appendChild(img);
-        });
+            });
 
-        this.fetchWorkOrderStatus();
+            this.fetchWorkOrderStatus();
+        }
     }
 
     private fetchWorkOrderStatus(): void {
