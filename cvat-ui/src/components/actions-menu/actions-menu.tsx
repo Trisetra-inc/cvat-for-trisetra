@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 // Copyright (C) 2020-2022 Intel Corporation
 // Copyright (C) 2022 CVAT.ai Corporation
 //
@@ -32,8 +33,10 @@ export enum Actions {
     LOAD_TASK_ANNO = 'load_task_anno',
     EXPORT_TASK_DATASET = 'export_task_dataset',
     EXPORT_TASK_ANNOTATIONS = 'export_task_annotations',
-    GENERATE_BLEND_AND_PREVIEW = 'generate_blend_and_preview',
-    GENERATE_GLB_AND_HDRS = 'generate_glb_and_hdrs',
+    GENERATE_BLEND = 'generate_blend',
+    GENERATE_GLB = 'generate_glb',
+    GENERATE_LIGHTMAPS = 'generate_lightmaps',
+    GENERATE_ENVMAPS_AND_THUMBNAIL = 'generate_envmaps_and_thumbnail',
     DELETE_TASK = 'delete_task',
     RUN_AUTO_ANNOTATION = 'run_auto_annotation',
     MOVE_TASK_TO_PROJECT = 'move_task_to_project',
@@ -84,26 +87,37 @@ function ActionsMenuComponent(props: Props): JSX.Element {
                             rotationValue > 0 ? (4 - rotationValue) * 90 : rotationValue * -90;
                         frameRotationInfo.push(`${key.split('_').at(-2)}=${anticlockWiseRotation}`);
                     });
-                const exportUrl = `${TRISETRA_API_ENDPOINT}/annotations/${taskID}/export?token=${TRISETRA_API_TOKEN}&${frameRotationInfo.join('&')}`;
+                const exportUrl = `${TRISETRA_API_ENDPOINT}/annotations/${taskID}/export?token=${TRISETRA_API_TOKEN}&${frameRotationInfo.join(
+                    '&',
+                )}`;
                 const exportTab = window.open(exportUrl, '_blank', 'noopener noreferrer');
                 exportTab?.focus();
-            } else if ([Actions.GENERATE_BLEND_AND_PREVIEW, Actions.GENERATE_GLB_AND_HDRS].includes(params.key)) {
-                const path = `tasks/${taskID}/${params.key === Actions.GENERATE_BLEND_AND_PREVIEW ? 'generate-blend' : 'generate-glb'}`;
-                sendRequest(path).then((data) => {
-                    Modal.success({
-                        title: 'Request sent',
-                        content: data.message,
+            } else if (
+                [
+                    Actions.GENERATE_BLEND,
+                    Actions.GENERATE_GLB,
+                    Actions.GENERATE_LIGHTMAPS,
+                    Actions.GENERATE_ENVMAPS_AND_THUMBNAIL,
+                ].includes(params.key as Actions)
+            ) {
+                const path = `tasks/${taskID}/${params.key.replaceAll('_', '-')}`;
+                sendRequest(path)
+                    .then((data) => {
+                        Modal.success({
+                            title: 'Request sent',
+                            content: data.message,
+                        });
+                        if (data.redirect_url) {
+                            const redirectedTab = window.open(data.redirect_url, '_blank', 'noopener noreferrer');
+                            redirectedTab?.focus();
+                        }
+                    })
+                    .catch((err) => {
+                        Modal.error({
+                            title: 'Error',
+                            content: err.message,
+                        });
                     });
-                    if (data.redirect_url) {
-                        const redirectedTab = window.open(data.redirect_url, '_blank', 'noopener noreferrer');
-                        redirectedTab?.focus();
-                    }
-                }).catch((err) => {
-                    Modal.error({
-                        title: 'Error',
-                        content: err.message,
-                    });
-                });
             } else {
                 onClickMenu(params);
             }
@@ -112,25 +126,19 @@ function ActionsMenuComponent(props: Props): JSX.Element {
     );
 
     const menuItems: [JSX.Element, number][] = [];
-    menuItems.push([(
-        <Menu.Item key={Actions.LOAD_TASK_ANNO}>Upload annotations</Menu.Item>
-    ), 0]);
+    menuItems.push([<Menu.Item key={Actions.LOAD_TASK_ANNO}>Upload annotations</Menu.Item>, 0]);
 
-    menuItems.push([(
-        <Menu.Item key={Actions.EXPORT_TASK_DATASET}>Export task dataset</Menu.Item>
-    ), 10]);
+    menuItems.push([<Menu.Item key={Actions.EXPORT_TASK_DATASET}>Export task dataset</Menu.Item>, 10]);
 
-    menuItems.push([(
-        <Menu.Item key={Actions.EXPORT_TASK_ANNOTATIONS}>Export Annotations & Reconstruct</Menu.Item>
-    ), 11]);
+    menuItems.push([<Menu.Item key={Actions.EXPORT_TASK_ANNOTATIONS}>1. Export Annotations & Reconstruct</Menu.Item>, 11]);
 
-    menuItems.push([(
-        <Menu.Item key={Actions.GENERATE_BLEND_AND_PREVIEW}>Generate Preview & Blend File</Menu.Item>
-    ), 12]);
+    menuItems.push([<Menu.Item key={Actions.GENERATE_BLEND}>2. Generate Blend & Preview</Menu.Item>, 12]);
 
-    menuItems.push([(
-        <Menu.Item key={Actions.GENERATE_GLB_AND_HDRS}>Generate & Upload GLB + HDRs</Menu.Item>
-    ), 13]);
+    menuItems.push([<Menu.Item key={Actions.GENERATE_GLB}>3. Generate GLB</Menu.Item>, 13]);
+
+    menuItems.push([<Menu.Item key={Actions.GENERATE_LIGHTMAPS}>4. Generate Lightmaps</Menu.Item>, 14]);
+
+    menuItems.push([<Menu.Item key={Actions.GENERATE_ENVMAPS_AND_THUMBNAIL}>5. Generate Envmaps & Thumbnail to Finalize</Menu.Item>, 15]);
 
     if (bugTracker) {
         menuItems.push([(
