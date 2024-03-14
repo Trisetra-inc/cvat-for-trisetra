@@ -32,7 +32,6 @@ interface Props {
     hideAllStates(): void;
     showAllStates(): void;
     changeShowGroundTruth(): void;
-    statesSearch(value: string): void;
 }
 
 function ObjectListComponent(props: Props): JSX.Element {
