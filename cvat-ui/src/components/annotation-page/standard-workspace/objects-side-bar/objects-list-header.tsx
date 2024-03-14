@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React from 'react';
+import React, { useState } from 'react';
 import Icon, {
     CaretDownOutlined,
     CaretUpFilled,
@@ -36,6 +36,7 @@ interface Props {
     hideAllStates(): void;
     showAllStates(): void;
     changeShowGroundTruth(): void;
+    statesSearch(value: string): void;
 }
 
 function LockAllSwitcher(props: Props): JSX.Element {
@@ -102,10 +103,15 @@ function CollapseAllSwitcher(props: Props): JSX.Element {
     );
 }
 
+
+
+
 function ObjectListHeader(props: Props): JSX.Element {
     const {
-        workspace, readonly, statesOrdering, changeStatesOrdering,
+        workspace, readonly, statesOrdering, changeStatesOrdering, statesSearch
     } = props;
+
+    const [inputValue, setInputValue] = useState<string>('');
 
     return (
         <div className='cvat-objects-sidebar-states-header'>
@@ -118,6 +124,10 @@ function ObjectListHeader(props: Props): JSX.Element {
                 <CollapseAllSwitcher {...props} />
                 <StatesOrderingSelector statesOrdering={statesOrdering} changeStatesOrdering={changeStatesOrdering} />
             </Row>
+            <div style={{display:'flex',justifyContent:'space-between',paddingTop:'5px',columnGap:'1rem'}}>
+                <input style={{width:'100%'}} type='text' placeholder='Search ID' onChange={(e) => setInputValue(e.target.value)}></input>
+                <button style={{borderRadius:'5px'}} onClick={() => statesSearch(inputValue)}>Search</button>
+            </div>
         </div>
     );
 }
