@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 
 import Text from 'antd/lib/typography/Text';
 
@@ -56,7 +56,6 @@ function ObjectListComponent(props: Props): JSX.Element {
         hideAllStates,
         showAllStates,
         changeShowGroundTruth,
-        statesSearch,
     } = props;
 
     const [annotationId, setAnnotationId] = useState<string>('');
@@ -82,9 +81,9 @@ function ObjectListComponent(props: Props): JSX.Element {
                 hideAllStates={hideAllStates}
                 showAllStates={showAllStates}
                 changeShowGroundTruth={changeShowGroundTruth}
-                statesSearch = {setAnnotationId}
+                statesSearch={setAnnotationId}
             />
-            <div className='cvat-objects-sidebar-states-list' style={{paddingBottom:'2rem'}}>
+            <div className='cvat-objects-sidebar-states-list' style={{ paddingBottom: '2rem' }}>
                 {sortedStatesID.map(
                     (id: number): JSX.Element => {
                         const object = objectStates.find((state: ObjectState) => state.clientID === id);
@@ -104,13 +103,13 @@ function ObjectListComponent(props: Props): JSX.Element {
                                         </Text>
                                     </div>
                                 )}
-                                {(annotationId ? String(object.serverID).startsWith(annotationId):true)? (
+                                {(annotationId ? String(object.serverID).startsWith(annotationId) : true) ? (
                                     <ObjectItemContainer
                                         readonly={readonly}
                                         objectStates={objectStates}
                                         clientID={id}
                                     />
-                                ): null}
+                                ) : null}
                             </React.Fragment>
                         );
                     },
