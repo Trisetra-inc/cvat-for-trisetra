@@ -3,7 +3,7 @@
 //
 // SPDX-License-Identifier: MIT
 
-import React from 'react';
+import React, { useState } from 'react';
 
 import Text from 'antd/lib/typography/Text';
 
@@ -57,6 +57,8 @@ function ObjectListComponent(props: Props): JSX.Element {
         changeShowGroundTruth,
     } = props;
 
+    const [search, setSearch] = useState<string>('');
+
     let latestZOrder: number | null = null;
     return (
         <>
@@ -78,8 +80,9 @@ function ObjectListComponent(props: Props): JSX.Element {
                 hideAllStates={hideAllStates}
                 showAllStates={showAllStates}
                 changeShowGroundTruth={changeShowGroundTruth}
+                setSearch={setSearch}
             />
-            <div className='cvat-objects-sidebar-states-list'>
+            <div className='cvat-objects-sidebar-states-list' style={{ paddingBottom: '2rem' }}>
                 {sortedStatesID.map(
                     (id: number): JSX.Element => {
                         const object = objectStates.find((state: ObjectState) => state.clientID === id);
@@ -89,7 +92,8 @@ function ObjectListComponent(props: Props): JSX.Element {
                         if (renderZLayer) {
                             latestZOrder = zOrder;
                         }
-
+                        // eslint-disable-next-line max-len
+                        const showObject = search ? (String(object.serverID).startsWith(search) || String(object.label.name).startsWith(search.toLowerCase())) : true;
                         return (
                             <React.Fragment key={id}>
                                 {renderZLayer && (
@@ -99,11 +103,13 @@ function ObjectListComponent(props: Props): JSX.Element {
                                         </Text>
                                     </div>
                                 )}
-                                <ObjectItemContainer
-                                    readonly={readonly}
-                                    objectStates={objectStates}
-                                    clientID={id}
-                                />
+                                {showObject ? (
+                                    <ObjectItemContainer
+                                        readonly={readonly}
+                                        objectStates={objectStates}
+                                        clientID={id}
+                                    />
+                                ) : null}
                             </React.Fragment>
                         );
                     },

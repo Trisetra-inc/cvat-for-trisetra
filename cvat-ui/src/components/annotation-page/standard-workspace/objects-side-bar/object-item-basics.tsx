@@ -171,6 +171,9 @@ function ItemTopComponent(props: Props): JSX.Element {
                     </Dropdown>
                 </Col>
             )}
+            <Col span={10}>
+                <Text style={{ fontSize: 12 }}><b>{serverID}</b></Text>
+            </Col>
         </Row>
     );
 }

@@ -36,6 +36,7 @@ interface Props {
     hideAllStates(): void;
     showAllStates(): void;
     changeShowGroundTruth(): void;
+    setSearch(value: string): void;
 }
 
 function LockAllSwitcher(props: Props): JSX.Element {
@@ -104,7 +105,7 @@ function CollapseAllSwitcher(props: Props): JSX.Element {
 
 function ObjectListHeader(props: Props): JSX.Element {
     const {
-        workspace, readonly, statesOrdering, changeStatesOrdering,
+        workspace, readonly, statesOrdering, changeStatesOrdering, setSearch,
     } = props;
 
     return (
@@ -118,6 +119,12 @@ function ObjectListHeader(props: Props): JSX.Element {
                 <CollapseAllSwitcher {...props} />
                 <StatesOrderingSelector statesOrdering={statesOrdering} changeStatesOrdering={changeStatesOrdering} />
             </Row>
+            <div style={{
+                display: 'flex', justifyContent: 'space-between', paddingTop: '5px', columnGap: '1rem',
+            }}
+            >
+                <input style={{ width: '100%' }} type='text' placeholder='Search ID or Label' onChange={(e) => setSearch(e.target.value)} />
+            </div>
         </div>
     );
 }
