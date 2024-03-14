@@ -93,7 +93,7 @@ function ObjectListComponent(props: Props): JSX.Element {
                             latestZOrder = zOrder;
                         }
                         // eslint-disable-next-line max-len
-                        const showObject = search ? (String(object.serverID).startsWith(search) || String(object.label.name).startsWith(search)) : true;
+                        const showObject = search ? (String(object.serverID).startsWith(search) || String(object.label.name).startsWith(search.toLowerCase())) : true;
                         return (
                             <React.Fragment key={id}>
                                 {renderZLayer && (
