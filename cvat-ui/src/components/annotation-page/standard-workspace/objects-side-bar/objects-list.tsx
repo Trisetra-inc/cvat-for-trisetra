@@ -59,10 +59,7 @@ function ObjectListComponent(props: Props): JSX.Element {
         statesSearch,
     } = props;
 
-    const [valueChild, setValueFromChild] = useState<string>('');
-    const handleChildValue = (value: string) => {
-        setValueFromChild(value);
-    };
+    const [annotationId, setAnnotationId] = useState<string>('');
 
     let latestZOrder: number | null = null;
     return (
@@ -85,19 +82,12 @@ function ObjectListComponent(props: Props): JSX.Element {
                 hideAllStates={hideAllStates}
                 showAllStates={showAllStates}
                 changeShowGroundTruth={changeShowGroundTruth}
-                statesSearch = {handleChildValue}
+                statesSearch = {setAnnotationId}
             />
             <div className='cvat-objects-sidebar-states-list' style={{paddingBottom:'2rem'}}>
                 {sortedStatesID.map(
                     (id: number): JSX.Element => {
-                        // const arr = objectStates.filter((item: ObjectState) => item.serverID === valueFromChild);
                         const object = objectStates.find((state: ObjectState) => state.clientID === id);
-                        let flag: boolean = true;
-                        if(valueChild !== '' && String(object.serverID) !== valueChild)
-                        {
-                            console.log(valueChild);
-                            flag = false;
-                        }
                         const zOrder = object?.zOrder || latestZOrder;
 
                         const renderZLayer = latestZOrder !== zOrder && statesOrdering === StatesOrdering.Z_ORDER;
@@ -114,13 +104,13 @@ function ObjectListComponent(props: Props): JSX.Element {
                                         </Text>
                                     </div>
                                 )}
-                                {flag && (
+                                {(annotationId ? String(object.serverID).startsWith(annotationId):true)? (
                                     <ObjectItemContainer
                                         readonly={readonly}
                                         objectStates={objectStates}
                                         clientID={id}
                                     />
-                                )}
+                                ): null}
                             </React.Fragment>
                         );
                     },
