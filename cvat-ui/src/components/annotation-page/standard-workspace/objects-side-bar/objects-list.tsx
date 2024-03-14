@@ -57,7 +57,7 @@ function ObjectListComponent(props: Props): JSX.Element {
         changeShowGroundTruth,
     } = props;
 
-    const [annotationId, setAnnotationId] = useState<string>('');
+    const [search, setSearch] = useState<string>('');
 
     let latestZOrder: number | null = null;
     return (
@@ -80,7 +80,7 @@ function ObjectListComponent(props: Props): JSX.Element {
                 hideAllStates={hideAllStates}
                 showAllStates={showAllStates}
                 changeShowGroundTruth={changeShowGroundTruth}
-                statesSearch={setAnnotationId}
+                setSearch={setSearch}
             />
             <div className='cvat-objects-sidebar-states-list' style={{ paddingBottom: '2rem' }}>
                 {sortedStatesID.map(
@@ -92,7 +92,8 @@ function ObjectListComponent(props: Props): JSX.Element {
                         if (renderZLayer) {
                             latestZOrder = zOrder;
                         }
-
+                        // eslint-disable-next-line max-len
+                        const showObject = search ? (String(object.serverID).startsWith(search) || String(object.label.name).startsWith(search)) : true;
                         return (
                             <React.Fragment key={id}>
                                 {renderZLayer && (
@@ -102,7 +103,7 @@ function ObjectListComponent(props: Props): JSX.Element {
                                         </Text>
                                     </div>
                                 )}
-                                {(annotationId ? String(object.serverID).startsWith(annotationId) : true) ? (
+                                {showObject ? (
                                     <ObjectItemContainer
                                         readonly={readonly}
                                         objectStates={objectStates}
