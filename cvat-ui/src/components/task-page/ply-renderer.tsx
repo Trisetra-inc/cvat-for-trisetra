@@ -12,7 +12,7 @@ interface PLYRendererProps {
     lastModified: string;
 }
 
-export const PLYRenderer = (props: PLYRendererProps): JSX.Element => {
+export function PLYRenderer(props: PLYRendererProps): JSX.Element {
     const { plyFile, lastModified } = props;
     React.useEffect(() => {
         const canvas = document.getElementById('my_canvas') as HTMLCanvasElement;
@@ -84,6 +84,5 @@ export const PLYRenderer = (props: PLYRendererProps): JSX.Element => {
             <p>{`PLY Last Modified: ${lastModified}`}</p>
             <canvas style={{ width: '100%', height: '100%' }} id='my_canvas' />
         </div>
-
     );
-};
+}

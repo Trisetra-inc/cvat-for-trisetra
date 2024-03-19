@@ -573,7 +573,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
         return sendRequest(`annotations/${jobInstance.id}/validate`, {
             body: JSON.stringify({ frame_rotation_info: frameRotationInfo }),
         });
-    }
+    };
 
     private range = (size: number): number[] => [...Array(size).keys()];
 
@@ -589,7 +589,7 @@ class AnnotationTopBarContainer extends React.PureComponent<Props, State> {
             }),
         );
         return frameNumberToOrderingTagMap;
-    }
+    };
 
     private onPrevFrameByOrderingTag = async (): Promise<void> => {
         const { frameNumber } = this.props;
