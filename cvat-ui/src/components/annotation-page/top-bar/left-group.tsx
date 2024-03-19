@@ -95,20 +95,23 @@ function LeftGroup(props: Props): JSX.Element {
             <Modal title='Checking annotations for the current job' visible={resultModalVisibility} {...baseProps}>
                 {resultModalVisibility && (
                     <Timeline>
-                        {Object.keys(results as any).map((check_no) => (
-                            <>
-                                {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
-                                <Timeline.Item key={check_no}>{(results as any)[check_no].passed ? '✅' : '❌' }&emsp;{(results as any)[check_no].name}</Timeline.Item>
-                                {!(results as any)[check_no].passed && (
-                                    (results as any)[check_no].images.map((image: any) => (
-                                        <Timeline.Item style={{ marginLeft: '4%' }}>
-                                            {image.passed ?
-                                                `✅  Frame ID: ${image.frame_id}` :
-                                                `❌  Frame ID: ${image.frame_id} Message: ${image.message}` }
-                                        </Timeline.Item>
-                                    )))}
-                            </>
-                        ))}
+                        {Object.keys(results as any).length === 0 ? (
+                            <Timeline.Item>✅ Good Job. All annotations are correct.</Timeline.Item>
+                        ) :
+                            (Object.keys(results as any).map((check_no) => (
+                                <>
+                                    {/* eslint-disable-next-line react/jsx-one-expression-per-line */}
+                                    <Timeline.Item key={check_no}>{(results as any)[check_no].passed ? '✅' : '❌' }&emsp;<b>{(results as any)[check_no].name}</b> {(results as any)[check_no].failureMessage}</Timeline.Item>
+                                    {!(results as any)[check_no].passed && (
+                                        (results as any)[check_no].images.map((image: any) => (
+                                            <Timeline.Item style={{ marginLeft: '4%' }}>
+                                                {image.passed ?
+                                                    `✅  Frame ID: ${image.frame_id}` :
+                                                    `❌  Frame ID: ${image.frame_id}${image.message ? ` => ${image.message}` : ''}` }
+                                            </Timeline.Item>
+                                        )))}
+                                </>
+                            )))}
                     </Timeline>
                 )}
             </Modal>
