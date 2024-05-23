@@ -37,6 +37,7 @@ export enum Actions {
     GENERATE_GLB = 'generate_glb',
     GENERATE_LIGHTMAPS = 'generate_lightmaps',
     GENERATE_ENVMAPS_AND_THUMBNAIL = 'generate_envmaps_and_thumbnail',
+    GENERATE_VR_TOUR = 'generate_vr_tour',
     DELETE_TASK = 'delete_task',
     RUN_AUTO_ANNOTATION = 'run_auto_annotation',
     MOVE_TASK_TO_PROJECT = 'move_task_to_project',
@@ -98,6 +99,7 @@ function ActionsMenuComponent(props: Props): JSX.Element {
                     Actions.GENERATE_GLB,
                     Actions.GENERATE_LIGHTMAPS,
                     Actions.GENERATE_ENVMAPS_AND_THUMBNAIL,
+                    Actions.GENERATE_VR_TOUR,
                 ].includes(params.key as Actions)
             ) {
                 const path = `tasks/${taskID}/${params.key.replaceAll('_', '-')}`;
@@ -139,6 +141,8 @@ function ActionsMenuComponent(props: Props): JSX.Element {
     menuItems.push([<Menu.Item key={Actions.GENERATE_LIGHTMAPS}>4. Generate Lightmaps</Menu.Item>, 14]);
 
     menuItems.push([<Menu.Item key={Actions.GENERATE_ENVMAPS_AND_THUMBNAIL}>5. Generate Envmaps & Thumbnail to Finalize</Menu.Item>, 15]);
+
+    menuItems.push([<Menu.Item key={Actions.GENERATE_VR_TOUR}>6. Generate VR Tour</Menu.Item>, 16]);
 
     if (bugTracker) {
         menuItems.push([(
